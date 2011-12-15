@@ -2,104 +2,78 @@
 
 */
 
+var engine;
 
-var engine = new jsge("stage", {
-    init: function() {
-        var canvas = this.canvas,
-            ctx = this.ctx;
-        
-        var player = {};
-        player.pos = {x:100, y:100};
-        player.vel = {x:1, y:1};
-        player.size = {w:20, h:20};
-        player.update = function() {
-            player.pos.x += player.vel.x;
-            player.pos.y += player.vel.y;
-            
-            if(engine.left.pressed) player.pos.x -= 1;
-            if(engine.right.pressed) player.pos.x += 1;
-            if(engine.up.pressed) player.pos.y -= 1;
-            if(engine.down.pressed) player.pos.y += 1;
-            
-            if(player.pos.x < 0) {
-                player.vel.x *= -1;
-                engine.trigger("hitwall", "left");
-            }
-            if(player.pos.y < 0) {
-                player.vel.y *= -1;
-                engine.trigger("hitwall", "top")
-            }
-            if(player.pos.x > canvas.width) {
-                player.vel.x *= -1;
-                engine.trigger("hitwall", "right")
-            }
-            if(player.pos.y > canvas.height) {
-                player.vel.y *= -1;
-                engine.trigger("hitwall", "bottom")
-            }
-        }
-        player.clear = function() {
-            ctx.clearRect(
-                player.pos.x - player.size.w/2,
-                player.pos.y - player.size.h/2,
-                player.size.w,
-                player.size.h
-            );
-        }
-        player.draw = function() {
-            ctx.fillStyle = "red";
-            ctx.fillRect(
-                player.pos.x - player.size.w/2,
-                player.pos.y - player.size.h/2,
-                player.size.w,
-                player.size.h
-            );
-        }
-        this.player = player;
-        
-        this.canvas.addEventListener("mouseup", function(e) {
-            log(e);
-            player.clear();
-            player.pos.x = e.offsetX;
-            player.pos.y = e.offsetY;
-        });
-        
-        engine.left = engine.keys.addKey({
-	        keyCode: 37
-        });
-        engine.right = engine.keys.addKey({
-	        keyCode: 39
-        });
-        engine.up = engine.keys.addKey({
-	        keyCode: 38
-        });
-        engine.down = engine.keys.addKey({
-	        keyCode: 40
-        });
-        
-        engine.listen("hitwall", function(dir) {
-            console.log("Player hit wall!", dir);
-        });
-        
-    },
+$(document).ready(function() {
     
-    main: function() {
+    engine = new jsge.Engine("stage", {
+        init: function() {
+            
+            var player = new jsge.Sprite(this, {
+                x: 100,
+                y: 100,
+                vx: 1,
+                vy: 1,
+                w: 100,
+                h: 100,
+                img: document.getElementById("img-sigmund")
+            });
+            
+            player.listen("leavescreen", function() {
+                this.velocity.x *= -1;
+                this.velocity.y *= -1;
+                engine.blip.play();
+            });
+            
+            this.canvas.addEventListener("mouseup", function(e) {
+                player.clear();
+                player.position.x = e.offsetX;
+                player.position.y = e.offsetY;
+            });
+            
+            this.ctx.mozImageSmoothingEnabled = false;
+            
+            /*
+            engine.left = engine.keys.addKey({
+	            keyCode: 37
+            });
+            engine.right = engine.keys.addKey({
+	            keyCode: 39
+            });
+            engine.up = engine.keys.addKey({
+	            keyCode: 38
+            });
+            engine.down = engine.keys.addKey({
+	            keyCode: 40
+            });
+            */
+            
+            this.player = player;
+            
+            this.blip = new Audio("audio/blip.wav");
+            this.blip.volume = 0.5;
+            
+            this.music = new Audio("audio/music.wav");
+            this.music.volume = 0.5;
+            this.music.loop = true;
+            this.music.play();
+            
+            this.ctx.font = "20pt Arial";
+            
+        },
         
-        //this.canvas.width = this.canvas.width;
-        this.player.clear();
-        this.player.update();
-        this.player.draw();
+        main: function() {
+            this.ctx.fillText("Hello, world!", 50, 50);
+        },
         
-    },
-    
-    exit: function() {
-        log("End");
-    }
+        exit: function() {
+            log("End");
+        }
+    });
+
+    engine.start();
+
 });
-
-engine.start();
-
-
 
 
 
